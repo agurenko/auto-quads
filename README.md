@@ -99,7 +99,7 @@ Total time: 6 seconds
 List all available hosts that can be added to your cloud:
 
 ```console
-[user@fedora auto-quads]$ ./auto-quads.py list-available-hosts
+[user@fedora auto-quads]$ ./auto-quads.py list-hosts
 Getting available hosts:
 
 host-001-r660.example.com
@@ -186,7 +186,7 @@ When finished, terminate the cloud to release the resources:
   - `-d, --description`: Cloud description
   - `-q, --qinq`: QinQ VLAN ID (0 or 1)
   - `--wipe` / `--no-wipe`: Wipe the cloud
-- `list-available-hosts`: List available hosts
+- `list-hosts`: List available hosts
 - `add-hosts`: Add one or more hosts to a cloud
 - `wait-for-cloud`: Wait for a cloud to complete validating
   - `-i, --assignment-id`: Assignment ID

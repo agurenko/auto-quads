@@ -155,7 +155,7 @@ def available_hosts(cliargs, config):
   if response.status_code != 200:
     fail(
       config,
-      "list-available-hosts",
+      "list-hosts",
       "Failed to list available hosts: {} {}".format(response.status_code, response.text),
     )
   for host in response.json():
@@ -164,7 +164,7 @@ def available_hosts(cliargs, config):
   print("\nTotal available hosts: {}".format(total_available))
   append_event(
     config,
-    "list-available-hosts",
+    "list-hosts",
     "success",
     "Listed {} available hosts".format(total_available),
   )
@@ -352,7 +352,7 @@ def main():
   parser_create.add_argument("-q", "--qinq", type=int, choices=[0, 1], default=None, help="QinQ VLAN ID (env: QUADS_QINQ)")
   parser_create.add_argument("-w", "--wipe", action=argparse.BooleanOptionalAction, default=None, help="Wipe the cloud (env: QUADS_WIPE)")
 
-  subparsers.add_parser("list-available-hosts",
+  subparsers.add_parser("list-hosts",
       help="List available hosts", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   parser_add = subparsers.add_parser("add-hosts",
@@ -385,7 +385,7 @@ def main():
   elif cliargs.command == "create-cloud":
     token = login(cliargs, config, "create-cloud")
     create_cloud(cliargs, token, config)
-  elif cliargs.command == "list-available-hosts":
+  elif cliargs.command == "list-hosts":
     available_hosts(cliargs, config)
   elif cliargs.command == "add-hosts":
     token = login(cliargs, config, "add-hosts")
