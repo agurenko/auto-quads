@@ -208,5 +208,10 @@ __marimo__/
 
 # Prevent auto-quads creds
 env.sh
+env.json
 env.perflab.sh
 env.scalelab.sh
+
+# Editor / tool directories
+.claude/
+.cursor/

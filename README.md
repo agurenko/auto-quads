@@ -7,7 +7,7 @@ Self-scheduling QUADS CLI tool to create and manage a self-scheduled cloud
 ### 1. Clone tool
 
 ```console
-[user@fedora ~]$ git clone https://github.com/akrzos/auto-quads.git
+[user@fedora ~]$ git clone https://github.com/agurenko/auto-quads.git
 Cloning into 'auto-quads'...
 ...
 Resolving deltas: 100% (11/11), done.
@@ -15,22 +15,22 @@ Resolving deltas: 100% (11/11), done.
 [user@fedora auto-quads]$
 ```
 
-### 2. Configure and Source Environment Variables
+### 2. Configure `env.json`
 
-Copy `env.sample.sh` to `env.sh` and fill in variables:
+Copy `env.sample.json` to `env.json` and fill in values:
 
 ```console
-[user@fedora auto-quads]$ cp env.sample.sh env.sh
+[user@fedora auto-quads]$ cp env.sample.json env.json
 ```
 
-Edit `env.sh` with your QUADS server details:
+Edit `env.json` with your QUADS server details:
 
 Fill in
 * `QUADS_SERVER` with your quads server
 * `QUADS_USERNAME` with either a new or existing quads username (Must be an email address to receive email notifications)
 * `QUADS_PASSWORD` with either a new or existing quads password
 * `QUADS_OWNER` will automatically be determined to the username portion of your email address
-* `QUADS_CLOUD` and `QUADS_ASSIGNMENT_ID` leave blank initally
+* `QUADS_CLOUD` and `QUADS_ASSIGNMENT_ID` leave blank initially (updated automatically by `create-cloud` / cleared by `terminate-cloud`)
 * `QUADS_DESCRIPTION` set to the description of your work
 * `QUADS_QINQ` sets cloud q-in-q setting, 0 is default
 * `QUADS_WIPE` determines if machines are wiped before being issued with the cloud, leave as true
@@ -40,30 +40,30 @@ Fill in
 
 Example:
 
-```bash
-export QUADS_SERVER=quads.example.com
-export QUADS_USERNAME=username@example.com
-export QUADS_PASSWORD=verysecurepassword
-export QUADS_OWNER=username
-export QUADS_CLOUD=
-export QUADS_ASSIGNMENT_ID=
-export QUADS_DESCRIPTION="Quick Scale Test"
-export QUADS_QINQ=0
-export QUADS_WIPE=true
+```json
+{
+  "QUADS_SERVER": "quads.example.com",
+  "QUADS_USERNAME": "username@example.com",
+  "QUADS_PASSWORD": "verysecurepassword",
+  "QUADS_OWNER": "username",
+  "QUADS_CLOUD": "",
+  "QUADS_ASSIGNMENT_ID": "",
+  "QUADS_DESCRIPTION": "Quick Scale Test",
+  "QUADS_QINQ": 0,
+  "QUADS_WIPE": true,
+  "hosts": [],
+  "events": []
+}
 ```
 
-Source `env.sh`:
-
-```console
-[user@fedora auto-quads]$ source env.sh
-```
+Precedence for settings: CLI flags > environment variables > `env.json`.
 
 ### 3. Register a New Account
 
 Register your account with the QUADS server:
 
 ```console
-[user@fedora auto-quads]$ ./auto-quads.py register
+[user@fedora auto-quads]$ ./auto-quads.py register-account
 ```
 
 > [!TIP]
@@ -92,36 +92,14 @@ Total time: 6 seconds
 ```
 
 > [!NOTE]
-> After creating the cloud, note the `Cloud name` and `Cloud Assignment ID` from the output
-
-Add `Cloud name` and `Cloud Assignment ID` to your `env.sh`
-
-Example:
-
-```bash
-export QUADS_SERVER=quads.example.com
-export QUADS_USERNAME=username@example.com
-export QUADS_PASSWORD=verysecurepassword
-export QUADS_OWNER=username
-export QUADS_CLOUD=cloud04
-export QUADS_ASSIGNMENT_ID=425
-export QUADS_DESCRIPTION="Quick Scale Test"
-export QUADS_QINQ=0
-export QUADS_WIPE=true
-```
-
-Source `env.sh` again:
-
-```console
-[user@fedora auto-quads]$ source env.sh
-```
+> `create-cloud` writes `QUADS_CLOUD` and `QUADS_ASSIGNMENT_ID` into `env.json` automatically.
 
 ### 5. Check Available Hosts
 
 List all available hosts that can be added to your cloud:
 
 ```console
-[user@fedora auto-quads]$ ./auto-quads.py available-hosts
+[user@fedora auto-quads]$ ./auto-quads.py list-available-hosts
 Getting available hosts:
 
 host-001-r660.example.com
@@ -158,6 +136,9 @@ Host added to cloud successfully
 Total time: 1 seconds
 ```
 
+> [!NOTE]
+> Successfully added hosts are recorded in `env.json` under `hosts` with an `added_at` timestamp (informational only).
+
 ### 7. Wait for Cloud Validation
 
 Wait for the cloud to complete its validation process:
@@ -174,7 +155,7 @@ Total time: 1975 seconds
 ```
 
 Optional parameters:
-- `-t, --timeout`: Timeout in seconds (default: 900)
+- `-t, --timeout`: Timeout in seconds (default: 3600)
 - `-p, --poll-interval`: Poll interval in seconds (default: 10)
 
 ### 8. Terminate Cloud
@@ -184,6 +165,9 @@ When finished, terminate the cloud to release the resources:
 ```console
 [user@fedora auto-quads]$ ./auto-quads.py terminate-cloud
 ```
+
+> [!NOTE]
+> `terminate-cloud` clears `QUADS_CLOUD` and `QUADS_ASSIGNMENT_ID` from `env.json`.
 
 ## Command Reference
 
@@ -197,24 +181,24 @@ When finished, terminate the cloud to release the resources:
 
 ### Available Commands
 
-- `register`: Register a new account
+- `register-account`: Register a new account
 - `create-cloud`: Create a new self-scheduled cloud
   - `-d, --description`: Cloud description
   - `-q, --qinq`: QinQ VLAN ID (0 or 1)
-  - `-w, --wipe`: Wipe the cloud
-- `available-hosts`: List available hosts
+  - `--wipe` / `--no-wipe`: Wipe the cloud
+- `list-available-hosts`: List available hosts
 - `add-hosts`: Add one or more hosts to a cloud
 - `wait-for-cloud`: Wait for a cloud to complete validating
   - `-i, --assignment-id`: Assignment ID
   - `-t, --timeout`: Timeout in seconds
   - `-p, --poll-interval`: Poll interval in seconds
 - `terminate-cloud`: Terminate a cloud
-  - `-i, --assignment-id`: Assignment ID (required)
+  - `-i, --assignment-id`: Assignment ID
 
 ## Tips
 
-- Always source `env.sh` after making changes to environment variables
-- Keep track of your `QUADS_CLOUD` and `QUADS_ASSIGNMENT_ID` values
+- Keep `env.json` out of version control (it is gitignored); it may contain credentials and runtime state
+- Command outcomes are appended to the short `events` log in `env.json`
 
 ## License
 
